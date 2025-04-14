@@ -1,0 +1,121 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<title>imginvert</title>
+</head>
+<body>
+<h1>imginvert</h1>
+<div>drop an image file to invert</div>
+<input type=range id=range min=0 max=5000 value=1000><br>
+<input type=range id=range2 min=0 max=5000 value=1000><br>
+<label><input type=checkbox id=chkinvert checked>invert</label>
+<label><input type=checkbox id=chkgray>gray scale</label>
+<div id=imgc><img id=img src="IMG_1240.jpg" crossorigin="anonymous"></div>
+<button id=btnsave>save</button>
+<hr>
+<a href=https://github.com/code4fukui/invert/>src on GitHub</a>
+
+<style>
+body {
+  height: 100vh;
+  text-align: center;
+}
+img {
+  width: 60vw;
+  margin: 10vw;
+  z-index: -1;
+  position: relative;
+}
+input[type=range] {
+  width: 80vw;
+}
+</style>
+
+<script type="module">
+import { setDropImageFileListener } from "https://js.sabae.cc/setDropImageFileListener.js";
+
+range.oninput = range2.oninput = chkinvert.oninput = chkgray.oninput = () => {
+  const n = range.value / 1000;
+  const n2 = range2.value / 1000;
+  const gray = chkgray.checked ? 1 : 0;
+  const invert = chkinvert.checked ? 1 : 0;
+  const img = imgc.childNodes[0];
+  if (img) {
+    img.style.filter = `invert(${invert}) grayscale(${gray}) contrast(${n}) brightness(${n2})`;
+  }
+};
+
+setDropImageFileListener(document.body, async (img) => {
+  imgc.innerHTML = "";
+  img.id = "img";
+  imgc.appendChild(img);
+  range.oninput();
+});
+range.oninput();
+
+//
+
+const saveFiltered = (img, invert, gray, contrast, brightness) => {
+  /*
+  const invert = 1;     // 0〜1
+  const gray = 1;       // 0〜1
+  const contrast = 2;   // 1 = 元、2 = 2倍
+  const brightness = 1.2; // 明るさ（1.2 = 20%明るく）
+  */
+  //const img = document.getElementById('source');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext('2d');
+
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  ctx.drawImage(img, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+
+    // invert
+    r = r * (1 - invert) + (255 - r) * invert;
+    g = g * (1 - invert) + (255 - g) * invert;
+    b = b * (1 - invert) + (255 - b) * invert;
+
+    // grayscale
+    const grayVal = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    r = r * (1 - gray) + grayVal * gray;
+    g = g * (1 - gray) + grayVal * gray;
+    b = b * (1 - gray) + grayVal * gray;
+
+    // contrast
+    r = ((r - 128) * contrast) + 128;
+    g = ((g - 128) * contrast) + 128;
+    b = ((b - 128) * contrast) + 128;
+
+    // brightness
+    r *= brightness;
+    g *= brightness;
+    b *= brightness;
+
+    // clamp values
+    data[i]     = Math.max(0, Math.min(255, r));
+    data[i + 1] = Math.max(0, Math.min(255, g));
+    data[i + 2] = Math.max(0, Math.min(255, b));
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
+  // 保存
+  const link = document.createElement('a');
+  link.download = 'filtered-image.png';
+  link.href = canvas.toDataURL();
+  link.click();
+};
+
+btnsave.onclick = () => {
+  const contrast = range.value / 1000;
+  const brightness = range2.value / 1000;
+  const gray = chkgray.checked ? 1 : 0;
+  const invert = chkinvert.checked ? 1 : 0;
+  saveFiltered(img, invert, gray, contrast, brightness);
+};
+</script>
