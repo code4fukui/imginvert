@@ -1,5 +1,7 @@
 # imginvert
 
+> 日本語のREADMEはこちらです: [README.ja.md](README.ja.md)
+
 A simple image inversion tool.
 
 ## Demo
