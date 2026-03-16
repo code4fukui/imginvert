@@ -1,6 +1,6 @@
 # imginvert
 
-imginvertは、画像の反転、グレースケール化、コントラストと明るさの調整を行うWebアプリです。
+imginvertは、画像の反転、グレースケール化、コントラストと明るさの調整を行うWebアプリケーションです。
 
 ## デモ
 https://code4fukui.github.io/imginvert/
